@@ -515,6 +515,10 @@ impl TypeInfo {
             DataType::BigChar => "BIGCHAR",
             DataType::NChar => "NCHAR",
 
+            DataType::DateTime2N => "DATETIME2",
+            DataType::DateTimeN => "DATETIME",
+            DataType::DateTime => "DATETIME",
+            DataType::DateN => "DATE",
             _ => unimplemented!("name: unsupported data type {:?}", self.ty),
         }
     }
@@ -578,6 +582,10 @@ impl TypeInfo {
                 s.push_str("bit");
             }
 
+            DataType::DateN => s.push_str("date"),
+            DataType::DateTime2N => s.push_str("datetime2"),
+            DataType::DateTimeN => s.push_str("datetime"),
+            DataType::DateTime => s.push_str("datetime"),
             _ => unimplemented!("fmt: unsupported data type {:?}", self.ty),
         }
     }
