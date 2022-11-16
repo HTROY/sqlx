@@ -118,7 +118,8 @@ impl TypeInfo {
                     // This is the Western encoding for Windows. It is an extension of ISO-8859-1,
                     // which is known as Latin 1.
                     0x0409 => encoding_rs::WINDOWS_1252,
-
+                    // add chiese gbk encoding
+                    0x0804 => encoding_rs::GBK,
                     locale => {
                         return Err(err_protocol!("unsupported locale 0x{:?}", locale));
                     }
