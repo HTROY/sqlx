@@ -82,14 +82,49 @@ impl Encode<'_, Mssql> for NaiveDateTime {
 
 impl<'r> Decode<'r, Mssql> for NaiveDateTime {
     fn decode(value: MssqlValueRef<'r>) -> Result<Self, BoxDynError> {
-        let days = LittleEndian::read_i32(&value.as_bytes()?[0..4]);
-        let third_seconds = LittleEndian::read_u32(&value.as_bytes()?[4..8]);
-        let ms = third_seconds / 3 * 10;
+        match value.type_info().0.ty() {
+            DataType::DateTime | DataType::DateTimeN => {
+                let days = LittleEndian::read_i32(&value.as_bytes()?[0..4]);
+                let third_seconds = LittleEndian::read_u32(&value.as_bytes()?[4..8]);
+                let ms = third_seconds / 3 * 10;
 
-        let time = NaiveTime::from_hms(0, 0, 0) + Duration::milliseconds(ms.into());
-        let date = NaiveDate::from_ymd(1900, 1, 1) + Duration::days(days.into());
+                let time = NaiveTime::from_hms(0, 0, 0) + Duration::milliseconds(ms.into());
+                let date = NaiveDate::from_ymd(1900, 1, 1) + Duration::days(days.into());
 
-        Ok(date.and_time(time))
+                Ok(date.and_time(time))
+            }
+            DataType::DateTime2N => {
+                let days = LittleEndian::read_u32(&value.as_bytes()?[0..3]);
+                let scale = value.type_info().0.scale();
+                let seconds = match scale {
+                    exp @ 0 | 1 | 2 => {
+                        LittleEndian::read_u32(&value.as_bytes()?[3..6]) / 10.pow(exp.into())
+                    }
+                    exp @ 3 | 4 => {
+                        LittleEndian::read_u32(&value.as_bytes()?[3..7]) / 10.pow(exp.into())
+                    }
+                    exp @ 5 | 6 | 7 => {
+                        LittleEndian::read_u32(&value.as_bytes()?[3..8]) / 10.pow(exp.into())
+                    }
+                    _ => unreachable!(),
+                };
+
+                let time = NaiveTime::from_hms(0, 0, 0) + Duration::seconds(seconds.into());
+                let date = NaiveDate::from_ymd(1, 1, 1) + Duration::days(days.into());
+                Ok(date.and_time(time))
+            }
+            DataType::DateTimeOffsetN => {
+                let days = LittleEndian::read_i32(&value.as_bytes()?[0..4]);
+                let third_seconds = LittleEndian::read_u32(&value.as_bytes()?[4..8]);
+                let ms = third_seconds / 3 * 10;
+
+                let time = NaiveTime::from_hms(0, 0, 0) + Duration::milliseconds(ms.into());
+                let date = NaiveDate::from_ymd(1900, 1, 1) + Duration::days(days.into());
+
+                Ok(date.and_time(time))
+            }
+            _ => unreachable!(),
+        }
     }
 }
 
