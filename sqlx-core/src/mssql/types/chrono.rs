@@ -82,7 +82,7 @@ impl Encode<'_, Mssql> for NaiveDateTime {
 
 impl<'r> Decode<'r, Mssql> for NaiveDateTime {
     fn decode(value: MssqlValueRef<'r>) -> Result<Self, BoxDynError> {
-        match value.type_info().0.ty() {
+        match value.type_info.0.ty {
             DataType::DateTime | DataType::DateTimeN => {
                 let days = LittleEndian::read_i32(&value.as_bytes()?[0..4]);
                 let third_seconds = LittleEndian::read_u32(&value.as_bytes()?[4..8]);
@@ -95,7 +95,7 @@ impl<'r> Decode<'r, Mssql> for NaiveDateTime {
             }
             DataType::DateTime2N => {
                 let days = LittleEndian::read_u32(&value.as_bytes()?[0..3]);
-                let scale = value.type_info().0.scale();
+                let scale = value.type_info.0.scale;
                 let seconds = match scale {
                     exp @ 0 | 1 | 2 => {
                         LittleEndian::read_u32(&value.as_bytes()?[3..6]) / 10u32.pow(exp.into())
