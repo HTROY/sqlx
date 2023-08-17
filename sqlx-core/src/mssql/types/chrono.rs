@@ -98,13 +98,13 @@ impl<'r> Decode<'r, Mssql> for NaiveDateTime {
                 let scale = value.type_info().0.scale();
                 let seconds = match scale {
                     exp @ 0 | 1 | 2 => {
-                        LittleEndian::read_u32(&value.as_bytes()?[3..6]) / 10.pow(exp.into())
+                        LittleEndian::read_u32(&value.as_bytes()?[3..6]) / 10u32.pow(exp.into())
                     }
                     exp @ 3 | 4 => {
-                        LittleEndian::read_u32(&value.as_bytes()?[3..7]) / 10.pow(exp.into())
+                        LittleEndian::read_u32(&value.as_bytes()?[3..7]) / 10u32.pow(exp.into())
                     }
                     exp @ 5 | 6 | 7 => {
-                        LittleEndian::read_u32(&value.as_bytes()?[3..8]) / 10.pow(exp.into())
+                        LittleEndian::read_u32(&value.as_bytes()?[3..8]) / 10u32.pow(exp.into())
                     }
                     _ => unreachable!(),
                 };
