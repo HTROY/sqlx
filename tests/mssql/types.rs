@@ -59,5 +59,7 @@ mod chrono {
         "CAST('2020-07-08 01:41:21.900' as datetime)" == NaiveDate::from_ymd(2020, 7, 8).and_hms_milli(1, 41, 21, 900),
         "CAST('2020-07-08 01:43:18.537' as datetime)" == NaiveDate::from_ymd(2020, 7, 8).and_hms_milli(1, 43, 18, 530),
         "CAST('2020-07-08 01:43:18.537' as datetime2)" == NaiveDate::from_ymd(2020, 7, 8).and_hms_milli(1, 43, 18, 537),
+        "CAST('2020-07-08 01:43:18.537' as datetime2(2))" == NaiveDate::from_ymd(2020, 7, 8).and_hms_milli(1, 43, 18, 53),
+        "CAST('2020-07-08 01:43:18.537' as datetime2(3))" == NaiveDate::from_ymd(2020, 7, 8).and_hms_milli(1, 43, 18, 537),
     ));
 }
