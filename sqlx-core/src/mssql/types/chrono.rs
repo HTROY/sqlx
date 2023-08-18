@@ -106,12 +106,8 @@ impl<'r> Decode<'r, Mssql> for NaiveDateTime {
                 let days = LittleEndian::read_u24(&value.as_bytes()?[5..8]);
                 let scale = value.type_info.0.scale;
                 let seconds = match scale {
-                    0 | 1 | 2 => {
-                        LittleEndian::read_u24(&value.as_bytes()?[0..3]) as u64
-                    }
-                    3 | 4 => {
-                        LittleEndian::read_u32(&value.as_bytes()?[0..4]) as u64
-                    }
+                    0 | 1 | 2 => LittleEndian::read_u24(&value.as_bytes()?[0..3]) as u64,
+                    3 | 4 => LittleEndian::read_u32(&value.as_bytes()?[0..4]) as u64,
                     5 | 6 | 7 => {
                         let mut slice = [0u8; 6];
                         slice.copy_from_slice(&value.as_bytes()?[0..6]);
@@ -122,9 +118,10 @@ impl<'r> Decode<'r, Mssql> for NaiveDateTime {
                 };
 
                 let nano_seconds = seconds * 10u64.pow(9 - scale as u32);
-                let (seconds, nano_seconds) = (nano_seconds / 1_000_000_000, nano_seconds % 1_000_000_000);
-                let time =
-                    NaiveTime::from_hms_nano_opt(0, 0, 0, nano_seconds as u32).unwrap() + Duration::seconds(seconds as i64);
+                let (seconds, nano_seconds) =
+                    (nano_seconds / 1_000_000_000, nano_seconds % 1_000_000_000);
+                let time = NaiveTime::from_hms_nano_opt(0, 0, 0, nano_seconds as u32).unwrap()
+                    + Duration::seconds(seconds as i64);
                 let date = NaiveDate::from_ymd_opt(1, 1, 1).unwrap() + Duration::days(days.into());
                 Ok(date.and_time(time))
             }
