@@ -103,16 +103,24 @@ impl<'r> Decode<'r, Mssql> for NaiveDateTime {
                 Ok(date.and_time(time))
             }
             DataType::DateTime2N => {
-                let days = LittleEndian::read_u24(&value.as_bytes()?[5..8]);
                 let scale = value.type_info.0.scale;
-                let seconds = match scale {
-                    0 | 1 | 2 => LittleEndian::read_u24(&value.as_bytes()?[0..3]) as u64,
-                    3 | 4 => LittleEndian::read_u32(&value.as_bytes()?[0..4]) as u64,
+                let (seconds, days) = match scale {
+                    0 | 1 | 2 => (
+                        LittleEndian::read_u24(&value.as_bytes()?[0..3]) as u64,
+                        LittleEndian::read_u24(&value.as_bytes()?[3..6]),
+                    ),
+                    3 | 4 => (
+                        LittleEndian::read_u32(&value.as_bytes()?[0..4]) as u64,
+                        LittleEndian::read_u24(&value.as_bytes()?[4..7]),
+                    ),
                     5 | 6 | 7 => {
                         let mut slice = [0u8; 6];
                         slice.copy_from_slice(&value.as_bytes()?[0..6]);
                         slice[5] = 0;
-                        LittleEndian::read_u48(&slice)
+                        (
+                            LittleEndian::read_u48(&slice),
+                            LittleEndian::read_u24(&value.as_bytes()?[5..8]),
+                        )
                     }
                     _ => unreachable!(),
                 };
